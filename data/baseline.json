@@ -1,0 +1,9 @@
+{
+    "created_at": "2026-05-23T00:42:19.923609",
+    "directory": "test_files/",
+    "files": {
+        "test_files/a.txt": "5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03",
+        "test_files/b.txt": "b37e50cedcd3e3f1ff64f4afc0422084ae694253cf399326868e07a35f4a45fb",
+        "test_files/osint.txt": "8b59054df9fdae253ca5e3d3a959fa6f6649d3252dc3f55253a732630fb380e6"
+    }
+}

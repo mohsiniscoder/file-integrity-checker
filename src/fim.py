@@ -1,6 +1,11 @@
 import hashlib
+import json
 import sys
 from pathlib import Path
+from datetime import datetime
+
+
+BASELINE_FILE = "data/baseline.json"
 
 
 def calculate_hash(file_path):
@@ -21,20 +26,55 @@ def calculate_hash(file_path):
 
 def scan_directory(directory):
     directory_path = Path(directory)
+    scan_results = {}
 
     if not directory_path.exists():
         print("[!] Directory does not exist.")
-        return
+        return None
 
     for file_path in directory_path.rglob("*"):
         if file_path.is_file():
             file_hash = calculate_hash(file_path)
-            print(f"{file_path} | {file_hash}")
+            scan_results[str(file_path)] = file_hash
+
+    return scan_results
+
+
+def create_baseline(directory):
+    scan_results = scan_directory(directory)
+
+    if scan_results is None:
+        return
+
+    baseline = {
+        "created_at": datetime.now().isoformat(),
+        "directory": directory,
+        "files": scan_results
+    }
+
+    with open(BASELINE_FILE, "w") as file:
+        json.dump(baseline, file, indent=4)
+
+    print(f"[+] Baseline created successfully.")
+    print(f"[+] Total files recorded: {len(scan_results)}")
+    print(f"[+] Saved to: {BASELINE_FILE}")
+
+
+def main():
+    if len(sys.argv) != 3:
+        print("Usage:")
+        print("  python3 src/fim.py baseline <directory>")
+        sys.exit(1)
+
+    command = sys.argv[1]
+    directory = sys.argv[2]
+
+    if command == "baseline":
+        create_baseline(directory)
+    else:
+        print("[!] Unknown command.")
+        print("Available command: baseline")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python3 src/fim.py <directory_to_scan>")
-        sys.exit(1)
-
-    scan_directory(sys.argv[1])
+    main()
