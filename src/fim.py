@@ -6,6 +6,7 @@ from datetime import datetime
 
 
 BASELINE_FILE = "data/baseline.json"
+REPORTS_DIR = "reports"
 
 
 def calculate_hash(file_path):
@@ -75,6 +76,18 @@ def load_baseline():
         return json.load(file)
 
 
+def save_report(report):
+    Path(REPORTS_DIR).mkdir(exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    report_file = f"{REPORTS_DIR}/fim_report_{timestamp}.json"
+
+    with open(report_file, "w") as file:
+        json.dump(report, file, indent=4)
+
+    return report_file
+
+
 def check_integrity(directory):
     baseline = load_baseline()
 
@@ -101,32 +114,42 @@ def check_integrity(directory):
         if file_path not in old_files:
             new_files.append(file_path)
 
+    report = {
+        "checked_at": datetime.now().isoformat(),
+        "baseline_created_at": baseline["created_at"],
+        "directory": directory,
+        "summary": {
+            "modified_count": len(modified_files),
+            "deleted_count": len(deleted_files),
+            "new_count": len(new_files)
+        },
+        "modified_files": modified_files,
+        "deleted_files": deleted_files,
+        "new_files": new_files
+    }
+
+    report_file = save_report(report)
+
     print("\n===== File Integrity Check Report =====")
-    print(f"Checked at: {datetime.now().isoformat()}")
+    print(f"Checked at: {report['checked_at']}")
     print(f"Directory: {directory}")
 
+    print("\n[SUMMARY]")
+    print(f"Modified files: {len(modified_files)}")
+    print(f"Deleted files: {len(deleted_files)}")
+    print(f"New files: {len(new_files)}")
+
     print("\n[MODIFIED FILES]")
-    if modified_files:
-        for file in modified_files:
-            print(f"  [!] {file}")
-    else:
-        print("  None")
+    print("\n".join(f"  [!] {file}" for file in modified_files) or "  None")
 
     print("\n[DELETED FILES]")
-    if deleted_files:
-        for file in deleted_files:
-            print(f"  [-] {file}")
-    else:
-        print("  None")
+    print("\n".join(f"  [-] {file}" for file in deleted_files) or "  None")
 
     print("\n[NEW FILES]")
-    if new_files:
-        for file in new_files:
-            print(f"  [+] {file}")
-    else:
-        print("  None")
+    print("\n".join(f"  [+] {file}" for file in new_files) or "  None")
 
-    print("\n=======================================")
+    print(f"\n[+] Report saved to: {report_file}")
+    print("=======================================")
 
 
 def main():

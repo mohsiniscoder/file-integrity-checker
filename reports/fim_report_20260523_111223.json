@@ -1,0 +1,15 @@
+{
+    "checked_at": "2026-05-23T11:12:23.076458",
+    "baseline_created_at": "2026-05-23T10:27:19.326443",
+    "directory": "test_files",
+    "summary": {
+        "modified_count": 0,
+        "deleted_count": 0,
+        "new_count": 1
+    },
+    "modified_files": [],
+    "deleted_files": [],
+    "new_files": [
+        "test_files/backdoor.txt"
+    ]
+}
