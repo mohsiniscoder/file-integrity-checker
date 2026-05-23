@@ -52,18 +52,88 @@ def create_baseline(directory):
         "files": scan_results
     }
 
+    Path("data").mkdir(exist_ok=True)
+
     with open(BASELINE_FILE, "w") as file:
         json.dump(baseline, file, indent=4)
 
-    print(f"[+] Baseline created successfully.")
+    print("[+] Baseline created successfully.")
     print(f"[+] Total files recorded: {len(scan_results)}")
     print(f"[+] Saved to: {BASELINE_FILE}")
+
+
+def load_baseline():
+    baseline_path = Path(BASELINE_FILE)
+
+    if not baseline_path.exists():
+        print("[!] No baseline found.")
+        print("[!] Run this first:")
+        print("    python3 src/fim.py baseline <directory>")
+        return None
+
+    with open(BASELINE_FILE, "r") as file:
+        return json.load(file)
+
+
+def check_integrity(directory):
+    baseline = load_baseline()
+
+    if baseline is None:
+        return
+
+    old_files = baseline["files"]
+    current_files = scan_directory(directory)
+
+    if current_files is None:
+        return
+
+    modified_files = []
+    deleted_files = []
+    new_files = []
+
+    for file_path, old_hash in old_files.items():
+        if file_path not in current_files:
+            deleted_files.append(file_path)
+        elif current_files[file_path] != old_hash:
+            modified_files.append(file_path)
+
+    for file_path in current_files:
+        if file_path not in old_files:
+            new_files.append(file_path)
+
+    print("\n===== File Integrity Check Report =====")
+    print(f"Checked at: {datetime.now().isoformat()}")
+    print(f"Directory: {directory}")
+
+    print("\n[MODIFIED FILES]")
+    if modified_files:
+        for file in modified_files:
+            print(f"  [!] {file}")
+    else:
+        print("  None")
+
+    print("\n[DELETED FILES]")
+    if deleted_files:
+        for file in deleted_files:
+            print(f"  [-] {file}")
+    else:
+        print("  None")
+
+    print("\n[NEW FILES]")
+    if new_files:
+        for file in new_files:
+            print(f"  [+] {file}")
+    else:
+        print("  None")
+
+    print("\n=======================================")
 
 
 def main():
     if len(sys.argv) != 3:
         print("Usage:")
         print("  python3 src/fim.py baseline <directory>")
+        print("  python3 src/fim.py check <directory>")
         sys.exit(1)
 
     command = sys.argv[1]
@@ -71,9 +141,11 @@ def main():
 
     if command == "baseline":
         create_baseline(directory)
+    elif command == "check":
+        check_integrity(directory)
     else:
         print("[!] Unknown command.")
-        print("Available command: baseline")
+        print("Available commands: baseline, check")
 
 
 if __name__ == "__main__":
